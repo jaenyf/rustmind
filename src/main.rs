@@ -1,40 +1,22 @@
-use std::io::Write;
-use std::sync::atomic::Ordering;
-use std::vec;
-use std::{io, sync::atomic::AtomicBool};
+mod app;
+mod cli;
+mod combination_check_result;
+mod console;
+mod game;
 
-use clap::{CommandFactory, Parser};
-use crossterm::event::KeyModifiers;
-use rand::RngExt;
+use std::io;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-use crossterm::{
-    event::{self, Event, KeyCode, KeyEventKind},
-    terminal::{disable_raw_mode, enable_raw_mode},
-};
-
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Cli {
-    /// Ammount of allowed tries
-    #[arg(short, long, default_value_t = 6, value_parser = clap::value_parser!(u8).range(1..16))]
-    colors: u8,
-
-    /// Ammount of slots to find
-    #[arg(short, long, default_value_t = 4)]
-    slots: u8,
-
-    /// Ammount of allowed tries
-    #[arg(short, long, default_value_t = 12)]
-    tries: u8,
-
-    /// Ammount of allowed duplicate colors
-    #[arg(short, long, default_value_t = 0)]
-    duplicates: u8,
-}
-
-static INTERRUPTED: AtomicBool = AtomicBool::new(false);
+use crate::app::App;
+use crate::cli::Cli;
+use crate::console::Console;
+use crate::game::Game;
 
 fn main() -> io::Result<()> {
+    let app = App::new();
+
+    static INTERRUPTED: AtomicBool = AtomicBool::new(false);
+
     ctrlc::set_handler(|| {
         INTERRUPTED.store(true, Ordering::SeqCst);
     })
@@ -42,116 +24,52 @@ fn main() -> io::Result<()> {
 
     println!("Welcome to rustmind!");
 
-    let cli = Cli::parse();
-
-    if cli.duplicates > cli.slots {
-        Cli::command()
-            .error(
-                clap::error::ErrorKind::ValueValidation,
-                format!("Duplicates value must be between 0 and {}", cli.slots),
-            )
-            .exit();
-    }
+    let cli = Cli::initialize_and_parse();
 
     println!("Colors: {:?}", cli.colors);
     println!("Slots: {:?}", cli.slots);
     println!("Tries: {:?}", cli.tries);
     println!("Duplicates:  {:?}", cli.duplicates);
 
-    let mut rng = rand::rng();
-    let mut colors_vector: Vec<u8> = vec![0; cli.slots as usize];
-    for i in 0..cli.slots {
-        let color = rng.random_range(0..cli.colors).into();
-        colors_vector[i as usize] = color;
-    }
+    let game = Game::new_parameterized(cli.slots as usize, cli.colors as usize, cli.tries as usize);
 
-    for i in 0..cli.slots {
-        println!("Pin {:?} is {:?}", i + 1, colors_vector[i as usize]);
-    }
+    // for i in 0..cli.slots {
+    //     println!("Pin {:?} is {:?}", i + 1, colors_vector[i as usize]);
+    // }
+
+    let mut console = Console::new(&app, cli.slots as usize);
 
     let mut is_victory: bool = false;
+    let mut input: Vec<usize> = Vec::new();
+    input.resize(cli.slots as usize, 0);
     for _i in 0..cli.tries {
         if INTERRUPTED.load(Ordering::SeqCst) {
+            app.interrupt();
+        }
+
+        if app.is_interrupted() {
             break;
         }
-        let mut input = String::new();
-        println!("Combination:");
 
-        //slots read
-        io::stdout().flush()?;
-        enable_raw_mode()?;
-        while !INTERRUPTED.load(Ordering::SeqCst) && input.len() < cli.slots as usize {
-            if let Event::Key(key) = event::read()? {
-                if key.kind != KeyEventKind::Press {
-                    continue;
-                }
+        console.read_combination(&mut input)?;
+        let combination_result = game.check_combination(&input);
+        console.print_combination_result(&combination_result);
 
-                match key.code {
-                    KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        INTERRUPTED.store(true, Ordering::SeqCst);
-                        continue;
-                    }
-                    KeyCode::Char(c) if c.is_ascii_hexdigit() => {
-                        input.push(c);
-                        print!("{c}");
-                        io::stdout().flush()?;
-                    }
-                    KeyCode::Backspace if !input.is_empty() => {
-                        input.pop();
-                        print!("\x08 \x08");
-                        io::stdout().flush()?;
-                    }
-                    KeyCode::Esc => break,
-                    _ => {} // Ignore invalid keys
-                }
-            }
-        }
-        disable_raw_mode()?;
-        //end slots read
-
-        //map the read chars to color numbers:
-        let color_numbers: Vec<u8> = input
-            .chars()
-            .map(|c| c.to_digit(16).unwrap() as u8)
-            .collect();
-
-        //compute the correct/misplaced slots
-        let mut correct_slots: u8 = 0;
-        let mut misplaced_slots: u8 = 0;
-        for slot_index in 0..cli.slots {
-            if colors_vector[slot_index as usize] == color_numbers[slot_index as usize] {
-                correct_slots += 1;
-                continue;
-            } else {
-                for other_slot_index in 0..cli.slots {
-                    if other_slot_index == slot_index {
-                        continue;
-                    } else {
-                        if colors_vector[slot_index as usize]
-                            == color_numbers[other_slot_index as usize]
-                        {
-                            misplaced_slots += 1;
-                            continue;
-                        }
-                    }
-                }
-            }
-        }
-
-        println!();
-        println!("Corrects:{}, misplaced:{}", correct_slots, misplaced_slots);
-
-        if correct_slots == cli.slots {
+        if combination_result.is_game_won() {
             is_victory = true;
             break;
         }
+        input.clear();
+        input.resize(cli.slots as usize, 0);
     }
 
-    if is_victory {
-        println!("You win!");
-        Ok(())
-    } else {
-        println!("You lose!");
-        std::process::exit(1);
+    if !app.is_interrupted() {
+        if is_victory {
+            console.print_game_won();
+            std::process::exit(0);
+        } else {
+            console.print_game_lost();
+        }
     }
+    std::process::exit(1);
 }
