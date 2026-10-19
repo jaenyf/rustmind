@@ -26,17 +26,16 @@ fn main() -> io::Result<()> {
 
     let app = App::new(cli.debug());
 
-    let game = Game::new_parameterized(
+    let mut game = Game::new_parameterized(
         cli.slots() as usize,
         cli.colors() as usize,
         cli.tries() as usize,
     );
 
-    // for i in 0..cli.slots {
-    //     println!("Pin {:?} is {:?}", i + 1, colors_vector[i as usize]);
-    // }
-
-    let mut console = Console::new(&app, &game);
+    let mut console = Console::new(&app);
+    if app.is_debug_flag() {
+        console.print_game_config(&game);
+    }
 
     let mut is_game_won: bool = false;
     let mut is_game_lost: bool = false;
@@ -51,7 +50,7 @@ fn main() -> io::Result<()> {
             break;
         }
 
-        console.read_combination(&mut input)?;
+        console.read_combination(&mut game, &mut input)?;
         let combination_result = game.check_combination(&input);
         console.print_combination_result(&combination_result);
 
@@ -71,7 +70,7 @@ fn main() -> io::Result<()> {
             console.print_game_won();
             std::process::exit(0);
         } else if is_game_lost {
-            console.print_game_lost();
+            console.print_game_lost(&game);
         }
     }
     std::process::exit(1);

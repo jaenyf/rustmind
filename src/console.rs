@@ -11,48 +11,46 @@ use crate::combination_check_result::CombinationCheckResult;
 
 pub struct Console<'a> {
     app: &'a App,
-    game: &'a Game,
 }
 
 impl<'a> Console<'a> {
-    pub fn new(app: &'a App, game: &'a Game) -> Self {
-        let console = Self {
-            app: app,
-            game: game,
-        };
-
-        if app.is_debug_flag() {
-            println!("Colors: {:?}", game.total_colors());
-            println!("Slots: {:?}", game.total_slots());
-            println!("Tries: {:?}", game.max_tries());
-            //println!("Duplicates:  {:?}", cli.duplicates);
-
-            println!(
-                "Combination is {}",
-                game.colors_combination()
-                    .iter()
-                    .map(|f| f.to_string())
-                    .collect::<Vec<_>>()
-                    .join("")
-            );
-        }
+    pub fn new(app: &'a App) -> Self {
+        let console = Self { app: app };
 
         console
     }
 
-    pub fn read_combination(&mut self, input: &mut Vec<usize>) -> io::Result<()> {
+    pub fn print_game_config(&self, game: &Game) {
+        println!("Colors: {:?}", game.total_colors());
+        println!("Slots: {:?}", game.total_slots());
+        println!("Tries: {:?}", game.max_tries());
+        //println!("Duplicates:  {:?}", cli.duplicates);
+
+        println!(
+            "Combination is {}",
+            game.colors_combination()
+                .iter()
+                .map(|f| f.to_string())
+                .collect::<Vec<_>>()
+                .join("")
+        );
+    }
+
+    pub fn read_combination(&mut self, game: &mut Game, input: &mut Vec<usize>) -> io::Result<()> {
         let mut buffer = String::new();
 
         println!(
             "Enter a combination (try #{}/{}):",
-            self.game.current_try() + 1,
-            self.game.max_tries()
+            game.current_try() + 1,
+            game.max_tries()
         );
+
+        game.inc_current_try();
 
         //slots read
         io::stdout().flush()?;
         enable_raw_mode()?;
-        while !self.app.is_interrupted() && buffer.len() < self.game.total_slots() {
+        while !self.app.is_interrupted() && buffer.len() < game.total_slots() {
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
                     continue;
@@ -105,11 +103,10 @@ impl<'a> Console<'a> {
         println!("You win!");
     }
 
-    pub fn print_game_lost(&self) {
+    pub fn print_game_lost(&self, game: &Game) {
         println!(
             "Solution was {}",
-            self.game
-                .colors_combination()
+            game.colors_combination()
                 .iter()
                 .map(|f| f.to_string())
                 .collect::<Vec<_>>()

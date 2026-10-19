@@ -55,6 +55,10 @@ impl Game {
         self.colors_combination.clone()
     }
 
+    pub fn inc_current_try(&mut self) {
+        self.current_try += 1;
+    }
+
     /// Compute the correct/misplaced slots and check for victory
     pub fn check_combination(&self, combination: &Vec<usize>) -> CombinationCheckResult {
         let mut well_placed: usize = 0;
