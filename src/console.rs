@@ -5,32 +5,54 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
-use crate::app::App;
+use crate::{app::App, game::Game};
 
 use crate::combination_check_result::CombinationCheckResult;
 
 pub struct Console<'a> {
     app: &'a App,
-    total_slots: usize,
+    game: &'a Game,
 }
 
 impl<'a> Console<'a> {
-    pub fn new(app: &'a App, total_slots: usize) -> Self {
-        Self {
+    pub fn new(app: &'a App, game: &'a Game) -> Self {
+        let console = Self {
             app: app,
-            total_slots: total_slots,
+            game: game,
+        };
+
+        if app.is_debug_flag() {
+            println!("Colors: {:?}", game.total_colors());
+            println!("Slots: {:?}", game.total_slots());
+            println!("Tries: {:?}", game.max_tries());
+            //println!("Duplicates:  {:?}", cli.duplicates);
+
+            println!(
+                "Combination is {}",
+                game.colors_combination()
+                    .iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<_>>()
+                    .join("")
+            );
         }
+
+        console
     }
 
     pub fn read_combination(&mut self, input: &mut Vec<usize>) -> io::Result<()> {
         let mut buffer = String::new();
 
-        println!("Combination:");
+        println!(
+            "Enter a combination (try #{}/{}):",
+            self.game.current_try() + 1,
+            self.game.max_tries()
+        );
 
         //slots read
         io::stdout().flush()?;
         enable_raw_mode()?;
-        while !self.app.is_interrupted() && buffer.len() < self.total_slots {
+        while !self.app.is_interrupted() && buffer.len() < self.game.total_slots() {
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
                     continue;
@@ -65,6 +87,7 @@ impl<'a> Console<'a> {
             .map(|c| c.to_digit(16).unwrap() as usize)
             .collect();
 
+        input.resize(color_numbers.len(), 0);
         input.copy_from_slice(&color_numbers);
 
         Ok(())
@@ -83,6 +106,16 @@ impl<'a> Console<'a> {
     }
 
     pub fn print_game_lost(&self) {
+        println!(
+            "Solution was {}",
+            self.game
+                .colors_combination()
+                .iter()
+                .map(|f| f.to_string())
+                .collect::<Vec<_>>()
+                .join("")
+        );
+
         println!("You lose!");
     }
 }

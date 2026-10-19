@@ -13,8 +13,6 @@ use crate::console::Console;
 use crate::game::Game;
 
 fn main() -> io::Result<()> {
-    let app = App::new();
-
     static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 
     ctrlc::set_handler(|| {
@@ -26,23 +24,25 @@ fn main() -> io::Result<()> {
 
     let cli = Cli::initialize_and_parse();
 
-    println!("Colors: {:?}", cli.colors);
-    println!("Slots: {:?}", cli.slots);
-    println!("Tries: {:?}", cli.tries);
-    println!("Duplicates:  {:?}", cli.duplicates);
+    let app = App::new(cli.debug());
 
-    let game = Game::new_parameterized(cli.slots as usize, cli.colors as usize, cli.tries as usize);
+    let game = Game::new_parameterized(
+        cli.slots() as usize,
+        cli.colors() as usize,
+        cli.tries() as usize,
+    );
 
     // for i in 0..cli.slots {
     //     println!("Pin {:?} is {:?}", i + 1, colors_vector[i as usize]);
     // }
 
-    let mut console = Console::new(&app, cli.slots as usize);
+    let mut console = Console::new(&app, &game);
 
-    let mut is_victory: bool = false;
+    let mut is_game_won: bool = false;
+    let mut is_game_lost: bool = false;
     let mut input: Vec<usize> = Vec::new();
-    input.resize(cli.slots as usize, 0);
-    for _i in 0..cli.tries {
+    input.resize(game.total_slots() as usize, 0);
+    for _i in 0..game.max_tries() {
         if INTERRUPTED.load(Ordering::SeqCst) {
             app.interrupt();
         }
@@ -56,18 +56,21 @@ fn main() -> io::Result<()> {
         console.print_combination_result(&combination_result);
 
         if combination_result.is_game_won() {
-            is_victory = true;
+            is_game_won = true;
             break;
         }
+        if combination_result.is_game_lost() {
+            is_game_lost = true;
+        }
         input.clear();
-        input.resize(cli.slots as usize, 0);
+        input.resize(game.total_slots() as usize, 0);
     }
 
     if !app.is_interrupted() {
-        if is_victory {
+        if is_game_won {
             console.print_game_won();
             std::process::exit(0);
-        } else {
+        } else if is_game_lost {
             console.print_game_lost();
         }
     }
