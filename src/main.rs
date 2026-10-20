@@ -1,31 +1,98 @@
-use clap::{CommandFactory, Parser};
+mod app;
+mod cli;
+mod combination_check_result;
+mod console;
+mod exit_codes;
+mod game;
+mod messages;
 
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Cli {
-    /// Ammount of colors
-    #[arg(short, long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=16))]
-    colors: u8,
+use std::io;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-    /// Ammount of allowed duplicate colors
-    #[arg(short, long, default_value_t = 0)]
-    duplicates: u8,
-}
+use crate::app::App;
+use crate::cli::Cli;
+use crate::console::Console;
+use crate::exit_codes::ExitCodes;
+use crate::game::Game;
+use crate::messages::Messages;
 
-fn main() {
-    println!("Welcome to rustmind!");
+fn main() -> io::Result<()> {
+    static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 
-    let cli = Cli::parse();
+    ctrlc::set_handler(|| {
+        INTERRUPTED.store(true, Ordering::SeqCst);
+    })
+    .expect("Error setting Ctrl+C handler");
 
-    if cli.duplicates > cli.colors {
-        Cli::command()
-            .error(
-                clap::error::ErrorKind::ValueValidation,
-                format!("Duplicates value must be between 0 and {}", cli.colors),
-            )
-            .exit();
+    Console::print_title()?;
+
+    let cli = Cli::initialize_and_parse();
+
+    let app = App::new(cli.verbose(), cli.debug());
+
+    // Check for configuration errors :
+    if (cli.slots() > cli.colors()) && cli.prevent_duplicates() {
+        Console::print_error(Messages::slots_exceed_colors_without_duplicates())?;
+        std::process::exit(ExitCodes::general_error());
     }
 
-    println!("Colors: {:?}", cli.colors);
-    println!("Duplicates:  {:?}", cli.duplicates);
+    let mut game = Game::new_parameterized(
+        cli.prevent_duplicates(),
+        cli.slots() as usize,
+        cli.colors() as usize,
+        cli.tries() as usize,
+        Game::generate_random_colors_combination(
+            cli.prevent_duplicates(),
+            cli.slots() as usize,
+            cli.colors() as usize,
+        ),
+    );
+
+    if app.is_verbose_flag() {
+        Console::print_game_config(&game)?;
+    }
+
+    if app.is_debug_flag() {
+        Console::print_answer(&game)?;
+    }
+
+    Console::print_empty_block()?;
+
+    let mut is_game_won: bool = false;
+    let mut is_game_lost: bool = false;
+    let mut input: Vec<usize> = Vec::new();
+    input.resize(game.total_slots() as usize, 0);
+    for _i in 0..game.max_tries() {
+        if INTERRUPTED.load(Ordering::SeqCst) {
+            app.interrupt();
+        }
+
+        if app.is_interrupted() {
+            break;
+        }
+
+        Console::read_combination(&app, &mut game, &mut input)?;
+        let combination_result = game.check_combination(&input);
+        Console::print_combination_result(&combination_result)?;
+
+        if combination_result.is_game_won() {
+            is_game_won = true;
+            break;
+        }
+        if combination_result.is_game_lost() {
+            is_game_lost = true;
+        }
+        input.clear();
+        input.resize(game.total_slots() as usize, 0);
+    }
+
+    if !app.is_interrupted() {
+        if is_game_won {
+            Console::print_game_won()?;
+            std::process::exit(ExitCodes::game_won());
+        } else if is_game_lost {
+            Console::print_game_lost(&game)?;
+        }
+    }
+    std::process::exit(ExitCodes::game_lost());
 }
