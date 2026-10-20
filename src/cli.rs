@@ -2,7 +2,7 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 pub struct Cli {
-    /// Ammount of allowed tries
+    /// Ammount of allowed colors
     #[arg(short, long, default_value_t = 6, value_parser = clap::value_parser!(u8).range(1..16))]
     colors: u8,
 
