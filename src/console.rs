@@ -71,7 +71,6 @@ impl<'a> Console<'a> {
                         print!("\x08 \x08");
                         io::stdout().flush()?;
                     }
-                    KeyCode::Esc => break,
                     _ => {} // Ignore invalid keys
                 }
             }
