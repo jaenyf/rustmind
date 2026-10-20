@@ -4,27 +4,32 @@ use clap::Parser;
 pub struct Cli {
     /// Ammount of allowed colors
     #[arg(short, long, default_value_t = 6, value_parser = clap::value_parser!(u8).range(1..=16))]
-    colors: u8,
+    pub(crate) colors: u8,
 
     /// Ammount of slots to find
     #[arg(short, long, default_value_t = 4)]
-    slots: u8,
+    pub(crate) slots: u8,
 
     /// Ammount of allowed tries
     #[arg(short, long, default_value_t = 12)]
-    tries: u8,
+    pub(crate) tries: u8,
 
     /// Prevent duplicates
     #[arg(short, long, default_value_t = true)]
-    prevent_duplicates: bool,
+    pub(crate) prevent_duplicates: bool,
 
     /// Display diagnostic information
     #[arg(short, long, default_value_t = false)]
-    debug: bool,
+    pub(crate) debug: bool,
 
     /// Display verbose information
     #[arg(short, long, default_value_t = false)]
-    verbose: bool,
+    pub(crate) verbose: bool,
+
+    /// Force the combination answer to the given value ([0-9a-fA-F]) -
+    /// When this option is set, it overrides any other set options with values derived from the given combination
+    #[arg(short('a'), long("answer"))]
+    pub(crate) combination_answer: Option<String>,
 }
 
 impl Cli {
@@ -32,29 +37,5 @@ impl Cli {
         let cli = Cli::parse();
 
         cli
-    }
-
-    pub fn prevent_duplicates(&self) -> bool {
-        self.prevent_duplicates
-    }
-
-    pub fn colors(&self) -> u8 {
-        self.colors
-    }
-
-    pub fn slots(&self) -> u8 {
-        self.slots
-    }
-
-    pub fn tries(&self) -> u8 {
-        self.tries
-    }
-
-    pub fn debug(&self) -> bool {
-        self.debug
-    }
-
-    pub fn verbose(&self) -> bool {
-        self.verbose
     }
 }

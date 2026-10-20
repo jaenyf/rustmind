@@ -26,26 +26,69 @@ fn main() -> io::Result<()> {
 
     Console::print_title()?;
 
-    let cli = Cli::initialize_and_parse();
+    let mut cli = Cli::initialize_and_parse();
 
-    let app = App::new(cli.verbose(), cli.debug());
+    let app = App::new(cli.verbose, cli.debug);
 
     // Check for configuration errors :
-    if (cli.slots() > cli.colors()) && cli.prevent_duplicates() {
+    if (cli.slots > cli.colors) && cli.prevent_duplicates {
         Console::print_error(Messages::slots_exceed_colors_without_duplicates())?;
         std::process::exit(ExitCodes::general_error());
     }
 
+    let combination_answer: Vec<usize>;
+    let forced_combination_answer = cli.combination_answer;
+    if forced_combination_answer.is_none() {
+        combination_answer = Game::generate_random_colors_combination(
+            cli.prevent_duplicates,
+            cli.slots as usize,
+            cli.colors as usize,
+        );
+    } else {
+        let combination_answer_chars: Vec<char> =
+            forced_combination_answer.unwrap().chars().collect();
+
+        if combination_answer_chars.len() > 255 {
+            Console::print_error(Messages::forced_combination_length_exceeded_())?;
+            std::process::exit(ExitCodes::general_error());
+        }
+        cli.slots = combination_answer_chars.len() as u8;
+
+        let mut max_digit_value: u32 = 0;
+        let mut seen_chars: Vec<char> = Vec::new();
+        for i in 0..combination_answer_chars.len() {
+            let char = combination_answer_chars[i];
+            if seen_chars.contains(&char) {
+                cli.prevent_duplicates = false;
+            } else {
+                seen_chars.push(char);
+            }
+            let digit = char.to_digit(16);
+            if digit.is_none() {
+                Console::print_error(
+                    Messages::forced_combination_contains_non_hexadecimal_characters(),
+                )?;
+                std::process::exit(ExitCodes::general_error());
+            }
+            let unwrapped_digit_value = digit.unwrap();
+            if max_digit_value < unwrapped_digit_value {
+                max_digit_value = unwrapped_digit_value
+            }
+        }
+        cli.colors = (max_digit_value + 1) as u8;
+
+        combination_answer = combination_answer_chars
+            .into_iter()
+            .map(|c| c.to_digit(16).unwrap() as usize)
+            .collect()
+    }
+
     let mut game = Game::new_parameterized(
-        cli.prevent_duplicates(),
-        cli.slots() as usize,
-        cli.colors() as usize,
-        cli.tries() as usize,
-        Game::generate_random_colors_combination(
-            cli.prevent_duplicates(),
-            cli.slots() as usize,
-            cli.colors() as usize,
-        ),
+        cli.prevent_duplicates,
+        cli.slots as usize,
+        cli.colors as usize,
+        cli.tries as usize,
+        combination_answer,
     );
 
     if app.is_verbose_flag() {
