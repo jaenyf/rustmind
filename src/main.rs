@@ -2,16 +2,17 @@ mod app;
 mod cli;
 mod combination_check_result;
 mod console;
+mod exit_codes;
 mod game;
 mod messages;
 
 use std::io;
-use std::process::exit;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::app::App;
 use crate::cli::Cli;
 use crate::console::Console;
+use crate::exit_codes::ExitCodes;
 use crate::game::Game;
 use crate::messages::Messages;
 
@@ -33,7 +34,7 @@ fn main() -> io::Result<()> {
 
     if (cli.slots() > cli.colors()) && cli.prevent_duplicates() {
         console.print_error(Messages::slots_exceed_colors_without_duplicates())?;
-        std::process::exit(2);
+        std::process::exit(ExitCodes::general_error());
     }
 
     let mut game = Game::new_parameterized(
@@ -89,10 +90,10 @@ fn main() -> io::Result<()> {
     if !app.is_interrupted() {
         if is_game_won {
             console.print_game_won()?;
-            std::process::exit(0);
+            std::process::exit(ExitCodes::game_won());
         } else if is_game_lost {
             console.print_game_lost(&game)?;
         }
     }
-    std::process::exit(1);
+    std::process::exit(ExitCodes::game_lost());
 }
