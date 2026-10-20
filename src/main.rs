@@ -24,16 +24,15 @@ fn main() -> io::Result<()> {
     })
     .expect("Error setting Ctrl+C handler");
 
+    Console::print_title()?;
+
     let cli = Cli::initialize_and_parse();
 
     let app = App::new(cli.verbose(), cli.debug());
 
-    let mut console = Console::new(&app);
-
-    console.print_title()?;
-
+    // Check for configuration errors :
     if (cli.slots() > cli.colors()) && cli.prevent_duplicates() {
-        console.print_error(Messages::slots_exceed_colors_without_duplicates())?;
+        Console::print_error(Messages::slots_exceed_colors_without_duplicates())?;
         std::process::exit(ExitCodes::general_error());
     }
 
@@ -50,14 +49,14 @@ fn main() -> io::Result<()> {
     );
 
     if app.is_verbose_flag() {
-        console.print_game_config(&game)?;
+        Console::print_game_config(&game)?;
     }
 
     if app.is_debug_flag() {
-        console.print_answer(&game)?;
+        Console::print_answer(&game)?;
     }
 
-    console.print_empty_block()?;
+    Console::print_empty_block()?;
 
     let mut is_game_won: bool = false;
     let mut is_game_lost: bool = false;
@@ -72,9 +71,9 @@ fn main() -> io::Result<()> {
             break;
         }
 
-        console.read_combination(&mut game, &mut input)?;
+        Console::read_combination(&app, &mut game, &mut input)?;
         let combination_result = game.check_combination(&input);
-        console.print_combination_result(&combination_result)?;
+        Console::print_combination_result(&combination_result)?;
 
         if combination_result.is_game_won() {
             is_game_won = true;
@@ -89,10 +88,10 @@ fn main() -> io::Result<()> {
 
     if !app.is_interrupted() {
         if is_game_won {
-            console.print_game_won()?;
+            Console::print_game_won()?;
             std::process::exit(ExitCodes::game_won());
         } else if is_game_lost {
-            console.print_game_lost(&game)?;
+            Console::print_game_lost(&game)?;
         }
     }
     std::process::exit(ExitCodes::game_lost());

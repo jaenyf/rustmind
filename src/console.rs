@@ -11,18 +11,10 @@ use crate::{app::App, game::Game};
 
 use crate::combination_check_result::CombinationCheckResult;
 
-pub struct Console<'a> {
-    app: &'a App,
-}
+pub struct Console {}
 
-impl<'a> Console<'a> {
-    pub fn new(app: &'a App) -> Self {
-        let console = Self { app: app };
-
-        console
-    }
-
-    pub fn print_title(&self) -> io::Result<()> {
+impl Console {
+    pub fn print_title() -> io::Result<()> {
         let mut stdout = io::stdout();
 
         queue!(
@@ -38,25 +30,34 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_error(&self, error: String) -> io::Result<()> {
+    pub fn print_error(error: String) -> io::Result<()> {
         let mut stdout = io::stdout();
 
         queue!(
             stdout,
             SetAttribute(Attribute::Bold),
             SetForegroundColor(Color::Red),
-            Print("\nError: "),
+            Print("error: "),
             ResetColor,
             SetAttribute(Attribute::NormalIntensity),
             Print(error),
             Print("!\n\n")
+        )?;
+
+        queue!(
+            stdout,
+            Print("For more information, try '"),
+            SetAttribute(Attribute::Bold),
+            Print("--help"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("'.\n")
         )?;
         stdout.flush()?;
 
         Ok(())
     }
 
-    pub fn print_game_config(&self, game: &Game) -> io::Result<()> {
+    pub fn print_game_config(game: &Game) -> io::Result<()> {
         let mut stdout = io::stdout();
 
         queue!(
@@ -113,7 +114,7 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_answer(&self, game: &Game) -> io::Result<()> {
+    pub fn print_answer(game: &Game) -> io::Result<()> {
         let mut stdout = io::stdout();
 
         queue!(
@@ -144,7 +145,7 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_empty_block(&self) -> io::Result<()> {
+    pub fn print_empty_block() -> io::Result<()> {
         let mut stdout = io::stdout();
 
         queue!(stdout, Print("\r\n"),)?;
@@ -158,7 +159,7 @@ impl<'a> Console<'a> {
         Color::AnsiValue(c.to_digit(16).unwrap() as u8)
     }
 
-    pub fn read_combination(&mut self, game: &mut Game, input: &mut Vec<usize>) -> io::Result<()> {
+    pub fn read_combination(app: &App, game: &mut Game, input: &mut Vec<usize>) -> io::Result<()> {
         let mut buffer = String::new();
 
         print!(
@@ -172,7 +173,7 @@ impl<'a> Console<'a> {
         //slots read
         io::stdout().flush()?;
         enable_raw_mode()?;
-        while !self.app.is_interrupted() && buffer.len() < game.total_slots() {
+        while !app.is_interrupted() && buffer.len() < game.total_slots() {
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
                     continue;
@@ -180,10 +181,14 @@ impl<'a> Console<'a> {
 
                 match key.code {
                     KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
-                        self.app.interrupt();
+                        app.interrupt();
                         continue;
                     }
-                    KeyCode::Char(c) if c.is_ascii_hexdigit() => {
+                    KeyCode::Char(c)
+                        if c.is_ascii_hexdigit()
+                            && ((c.to_digit(16).unwrap_or(u32::MAX) as usize)
+                                < game.total_colors()) =>
+                    {
                         buffer.push(c);
                         queue!(
                             io::stdout(),
@@ -219,16 +224,7 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_combination_result(
-        &self,
-        combination_result: &CombinationCheckResult,
-    ) -> io::Result<()> {
-        // println!(
-        //     "  \u{2514}\u{2500}[Correct:{}, Misplaced:{}]",
-        //     combination_result.well_placed(),
-        //     combination_result.misplaced()
-        // );
-
+    pub fn print_combination_result(combination_result: &CombinationCheckResult) -> io::Result<()> {
         let mut stdout = io::stdout();
         queue!(
             stdout,
@@ -248,7 +244,7 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_game_won(&self) -> io::Result<()> {
+    pub fn print_game_won() -> io::Result<()> {
         let mut stdout = io::stdout();
         queue!(
             stdout,
@@ -262,7 +258,7 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_game_lost(&self, game: &Game) -> io::Result<()> {
+    pub fn print_game_lost(game: &Game) -> io::Result<()> {
         let mut stdout = io::stdout();
         queue!(
             stdout,
