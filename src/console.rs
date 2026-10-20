@@ -2,6 +2,8 @@ use std::io::{self, Write};
 
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind, KeyModifiers},
+    queue,
+    style::{Attribute, Color, Print, ResetColor, SetAttribute, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
@@ -36,6 +38,10 @@ impl<'a> Console<'a> {
         );
     }
 
+    fn color_for(c: char) -> Color {
+        Color::AnsiValue(c.to_digit(16).unwrap() as u8)
+    }
+
     pub fn read_combination(&mut self, game: &mut Game, input: &mut Vec<usize>) -> io::Result<()> {
         let mut buffer = String::new();
 
@@ -63,7 +69,14 @@ impl<'a> Console<'a> {
                     }
                     KeyCode::Char(c) if c.is_ascii_hexdigit() => {
                         buffer.push(c);
-                        print!("{c}");
+                        queue!(
+                            io::stdout(),
+                            SetForegroundColor(Self::color_for(c)),
+                            SetAttribute(Attribute::Bold),
+                            Print(c),
+                            ResetColor,
+                            SetAttribute(Attribute::NormalIntensity),
+                        )?;
                         io::stdout().flush()?;
                     }
                     KeyCode::Backspace if !buffer.is_empty() => {
