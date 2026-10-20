@@ -39,8 +39,8 @@ impl<'a> Console<'a> {
     pub fn read_combination(&mut self, game: &mut Game, input: &mut Vec<usize>) -> io::Result<()> {
         let mut buffer = String::new();
 
-        println!(
-            "Enter a combination (try #{}/{}):",
+        print!(
+            "Enter a combination (try #{}/{}): ",
             game.current_try() + 1,
             game.max_tries()
         );
