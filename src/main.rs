@@ -30,6 +30,7 @@ fn main() -> io::Result<()> {
         cli.slots() as usize,
         cli.colors() as usize,
         cli.tries() as usize,
+        Game::generate_random_colors_combination(cli.slots() as usize, cli.colors() as usize),
     );
 
     let mut console = Console::new(&app);
