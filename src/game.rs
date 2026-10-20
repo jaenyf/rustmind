@@ -1,9 +1,11 @@
-use rand::RngExt;
+use rand::{RngExt, seq::SliceRandom};
 
-use crate::combination_check_result::CombinationCheckResult;
+use crate::{combination_check_result::CombinationCheckResult, messages::Messages};
 
 /// Describe a single game state
 pub struct Game {
+    /// Whether or not to prevent duplicates in combination
+    prevent_duplicates: bool,
     /// The user current try
     current_try: usize,
     /// The maximum allowed tries
@@ -19,12 +21,14 @@ pub struct Game {
 impl Game {
     /// Create a new game
     pub fn new_parameterized(
+        prevent_duplicates: bool,
         total_slots: usize,
         total_colors: usize,
         max_tries: usize,
         colors_combination: Vec<usize>,
     ) -> Self {
         let game = Self {
+            prevent_duplicates: prevent_duplicates,
             current_try: 0,
             max_tries: max_tries,
             total_slots: total_slots,
@@ -36,14 +40,32 @@ impl Game {
     }
 
     pub fn generate_random_colors_combination(
+        duplicates_prevented: bool,
         total_slots: usize,
         total_colors: usize,
     ) -> Vec<usize> {
         let mut rng = rand::rng();
 
-        (0..total_slots)
-            .map(|_| rng.random_range(0..total_colors))
-            .collect()
+        if duplicates_prevented {
+            assert!(
+                total_slots <= total_colors,
+                "{}",
+                Messages::slots_exceed_colors_without_duplicates()
+            );
+
+            let mut colors: Vec<usize> = (0..total_colors).collect();
+            colors.shuffle(&mut rng);
+            colors.truncate(total_slots);
+            colors
+        } else {
+            (0..total_slots)
+                .map(|_| rng.random_range(0..total_colors))
+                .collect()
+        }
+    }
+
+    pub fn prevent_duplicates(&self) -> bool {
+        self.prevent_duplicates
     }
 
     pub fn current_try(&self) -> usize {
@@ -139,7 +161,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -169,7 +191,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -197,7 +219,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -219,7 +241,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -246,7 +268,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);

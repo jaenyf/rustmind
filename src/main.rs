@@ -3,14 +3,17 @@ mod cli;
 mod combination_check_result;
 mod console;
 mod game;
+mod messages;
 
 use std::io;
+use std::process::exit;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::app::App;
 use crate::cli::Cli;
 use crate::console::Console;
 use crate::game::Game;
+use crate::messages::Messages;
 
 fn main() -> io::Result<()> {
     static INTERRUPTED: AtomicBool = AtomicBool::new(false);
@@ -24,16 +27,26 @@ fn main() -> io::Result<()> {
 
     let app = App::new(cli.verbose(), cli.debug());
 
-    let mut game = Game::new_parameterized(
-        cli.slots() as usize,
-        cli.colors() as usize,
-        cli.tries() as usize,
-        Game::generate_random_colors_combination(cli.slots() as usize, cli.colors() as usize),
-    );
-
     let mut console = Console::new(&app);
 
     console.print_title()?;
+
+    if (cli.slots() > cli.colors()) && cli.prevent_duplicates() {
+        console.print_error(Messages::slots_exceed_colors_without_duplicates())?;
+        std::process::exit(2);
+    }
+
+    let mut game = Game::new_parameterized(
+        cli.prevent_duplicates(),
+        cli.slots() as usize,
+        cli.colors() as usize,
+        cli.tries() as usize,
+        Game::generate_random_colors_combination(
+            cli.prevent_duplicates(),
+            cli.slots() as usize,
+            cli.colors() as usize,
+        ),
+    );
 
     if app.is_verbose_flag() {
         console.print_game_config(&game)?;

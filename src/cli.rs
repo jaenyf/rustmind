@@ -14,6 +14,10 @@ pub struct Cli {
     #[arg(short, long, default_value_t = 12)]
     tries: u8,
 
+    /// Prevent duplicates
+    #[arg(short, long, default_value_t = true)]
+    prevent_duplicates: bool,
+
     /// Display diagnostic information
     #[arg(short, long, default_value_t = false)]
     debug: bool,
@@ -28,6 +32,10 @@ impl Cli {
         let cli = Cli::parse();
 
         cli
+    }
+
+    pub fn prevent_duplicates(&self) -> bool {
+        self.prevent_duplicates
     }
 
     pub fn colors(&self) -> u8 {

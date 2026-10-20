@@ -38,6 +38,24 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
+    pub fn print_error(&self, error: String) -> io::Result<()> {
+        let mut stdout = io::stdout();
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            SetForegroundColor(Color::Red),
+            Print("\nError: "),
+            ResetColor,
+            SetAttribute(Attribute::NormalIntensity),
+            Print(error),
+            Print("!\n\n")
+        )?;
+        stdout.flush()?;
+
+        Ok(())
+    }
+
     pub fn print_game_config(&self, game: &Game) -> io::Result<()> {
         let mut stdout = io::stdout();
 
@@ -77,6 +95,16 @@ impl<'a> Console<'a> {
             SetAttribute(Attribute::NormalIntensity),
             Print("       : "),
             Print(game.max_tries()),
+            Print("\n")
+        )?;
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("Duplicates"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("  : "),
+            Print(!game.prevent_duplicates()),
             Print("\n")
         )?;
 
