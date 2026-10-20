@@ -20,8 +20,6 @@ fn main() -> io::Result<()> {
     })
     .expect("Error setting Ctrl+C handler");
 
-    println!("Welcome to rustmind!");
-
     let cli = Cli::initialize_and_parse();
 
     let app = App::new(cli.debug());
@@ -34,8 +32,11 @@ fn main() -> io::Result<()> {
     );
 
     let mut console = Console::new(&app);
+
+    console.print_title()?;
+
     if app.is_debug_flag() {
-        console.print_game_config(&game);
+        console.print_game_config(&game)?;
     }
 
     let mut is_game_won: bool = false;
@@ -53,7 +54,7 @@ fn main() -> io::Result<()> {
 
         console.read_combination(&mut game, &mut input)?;
         let combination_result = game.check_combination(&input);
-        console.print_combination_result(&combination_result);
+        console.print_combination_result(&combination_result)?;
 
         if combination_result.is_game_won() {
             is_game_won = true;
@@ -68,10 +69,10 @@ fn main() -> io::Result<()> {
 
     if !app.is_interrupted() {
         if is_game_won {
-            console.print_game_won();
+            console.print_game_won()?;
             std::process::exit(0);
         } else if is_game_lost {
-            console.print_game_lost(&game);
+            console.print_game_lost(&game)?;
         }
     }
     std::process::exit(1);

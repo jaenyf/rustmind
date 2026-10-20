@@ -22,20 +22,90 @@ impl<'a> Console<'a> {
         console
     }
 
-    pub fn print_game_config(&self, game: &Game) {
-        println!("Colors: {:?}", game.total_colors());
-        println!("Slots: {:?}", game.total_slots());
-        println!("Tries: {:?}", game.max_tries());
-        //println!("Duplicates:  {:?}", cli.duplicates);
+    pub fn print_title(&self) -> io::Result<()> {
+        let mut stdout = io::stdout();
 
-        println!(
-            "Combination is {}",
-            game.colors_combination()
-                .iter()
-                .map(|f| f.to_string())
-                .collect::<Vec<_>>()
-                .join("")
-        );
+        queue!(
+            stdout,
+            Print("\nWelcome to "),
+            SetAttribute(Attribute::Bold),
+            Print("Rustmind"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("!\n\n")
+        )?;
+        stdout.flush()?;
+
+        Ok(())
+    }
+
+    pub fn print_game_config(&self, game: &Game) -> io::Result<()> {
+        let mut stdout = io::stdout();
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            SetAttribute(Attribute::Underlined),
+            Print("Configuration:\n"),
+            SetAttribute(Attribute::NormalIntensity),
+            SetAttribute(Attribute::NoUnderline),
+        )?;
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("Colors"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("      : "),
+            Print(game.total_colors()),
+            Print("\n")
+        )?;
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("Slots"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("       : "),
+            Print(game.total_slots()),
+            Print("\n")
+        )?;
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("Tries"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("       : "),
+            Print(game.max_tries()),
+            Print("\n")
+        )?;
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("Combination"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print(" : "),
+        )?;
+
+        for f in game.colors_combination().iter() {
+            let c = char::from_digit(*f as u32, 16).unwrap();
+
+            queue!(
+                stdout,
+                SetAttribute(Attribute::Bold),
+                SetForegroundColor(Self::color_for(c)),
+                Print(c),
+                SetAttribute(Attribute::NormalIntensity),
+                ResetColor,
+            )?;
+        }
+
+        queue!(stdout, Print("\n\n"),)?;
+
+        stdout.flush()?;
+
+        Ok(())
     }
 
     fn color_for(c: char) -> Color {
@@ -46,7 +116,7 @@ impl<'a> Console<'a> {
         let mut buffer = String::new();
 
         print!(
-            "Enter a combination (try #{}/{}): ",
+            "[#{}/{}] Combination : ",
             game.current_try() + 1,
             game.max_tries()
         );
@@ -88,8 +158,8 @@ impl<'a> Console<'a> {
                 }
             }
         }
+        queue!(io::stdout(), Print("\r\n"))?;
         disable_raw_mode()?;
-        println!();
         //end slots read
 
         let color_numbers: Vec<usize> = buffer
@@ -103,28 +173,85 @@ impl<'a> Console<'a> {
         Ok(())
     }
 
-    pub fn print_combination_result(&self, combination_result: &CombinationCheckResult) {
-        println!(
-            "Corrects:{}, misplaced:{}",
-            combination_result.well_placed(),
-            combination_result.misplaced()
-        );
+    pub fn print_combination_result(
+        &self,
+        combination_result: &CombinationCheckResult,
+    ) -> io::Result<()> {
+        // println!(
+        //     "  \u{2514}\u{2500}[Correct:{}, Misplaced:{}]",
+        //     combination_result.well_placed(),
+        //     combination_result.misplaced()
+        // );
+
+        let mut stdout = io::stdout();
+        queue!(
+            stdout,
+            Print("  "),
+            SetAttribute(Attribute::Bold),
+            Print("\u{2514}\u{2500}["),
+            SetAttribute(Attribute::NormalIntensity),
+            Print("Correct:"),
+            Print(combination_result.well_placed()),
+            Print(", Misplaced:"),
+            Print(combination_result.misplaced()),
+            SetAttribute(Attribute::Bold),
+            Print("]\n"),
+            ResetColor
+        )?;
+        stdout.flush()?;
+        Ok(())
     }
 
-    pub fn print_game_won(&self) {
-        println!("You win!");
+    pub fn print_game_won(&self) -> io::Result<()> {
+        let mut stdout = io::stdout();
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            SetForegroundColor(Color::Green),
+            Print("You win!\n"),
+            SetAttribute(Attribute::NormalIntensity),
+            ResetColor,
+        )?;
+        stdout.flush()?;
+        Ok(())
     }
 
-    pub fn print_game_lost(&self, game: &Game) {
-        println!(
-            "Solution was {}",
-            game.colors_combination()
-                .iter()
-                .map(|f| f.to_string())
-                .collect::<Vec<_>>()
-                .join("")
-        );
+    pub fn print_game_lost(&self, game: &Game) -> io::Result<()> {
+        let mut stdout = io::stdout();
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("Combination was"),
+            SetAttribute(Attribute::NormalIntensity),
+            Print(" : "),
+        )?;
 
-        println!("You lose!");
+        for f in game.colors_combination().iter() {
+            let c = char::from_digit(*f as u32, 16).unwrap();
+
+            queue!(
+                stdout,
+                SetAttribute(Attribute::Bold),
+                SetForegroundColor(Self::color_for(c)),
+                Print(c),
+                SetAttribute(Attribute::NormalIntensity),
+                ResetColor,
+            )?;
+        }
+
+        queue!(stdout, Print("\n"))?;
+
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            SetForegroundColor(Color::Red),
+            Print("You lose!\n"),
+            SetAttribute(Attribute::NormalIntensity),
+            ResetColor,
+        )?;
+
+        stdout.flush()?;
+
+        Ok(())
     }
 }
