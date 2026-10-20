@@ -80,6 +80,14 @@ impl<'a> Console<'a> {
             Print("\n")
         )?;
 
+        stdout.flush()?;
+
+        Ok(())
+    }
+
+    pub fn print_answer(&self, game: &Game) -> io::Result<()> {
+        let mut stdout = io::stdout();
+
         queue!(
             stdout,
             SetAttribute(Attribute::Bold),
@@ -101,7 +109,17 @@ impl<'a> Console<'a> {
             )?;
         }
 
-        queue!(stdout, Print("\n\n"),)?;
+        queue!(stdout, Print("\n"),)?;
+
+        stdout.flush()?;
+
+        Ok(())
+    }
+
+    pub fn print_empty_block(&self) -> io::Result<()> {
+        let mut stdout = io::stdout();
+
+        queue!(stdout, Print("\r\n"),)?;
 
         stdout.flush()?;
 

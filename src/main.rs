@@ -22,7 +22,7 @@ fn main() -> io::Result<()> {
 
     let cli = Cli::initialize_and_parse();
 
-    let app = App::new(cli.debug());
+    let app = App::new(cli.verbose(), cli.debug());
 
     let mut game = Game::new_parameterized(
         cli.slots() as usize,
@@ -35,9 +35,15 @@ fn main() -> io::Result<()> {
 
     console.print_title()?;
 
-    if app.is_debug_flag() {
+    if app.is_verbose_flag() {
         console.print_game_config(&game)?;
     }
+
+    if app.is_debug_flag() {
+        console.print_answer(&game)?;
+    }
+
+    console.print_empty_block()?;
 
     let mut is_game_won: bool = false;
     let mut is_game_lost: bool = false;

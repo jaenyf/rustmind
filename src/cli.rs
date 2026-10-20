@@ -14,9 +14,13 @@ pub struct Cli {
     #[arg(short, long, default_value_t = 12)]
     tries: u8,
 
-    /// Enable diagnostic logging
+    /// Display diagnostic information
     #[arg(short, long, default_value_t = false)]
     debug: bool,
+
+    /// Display verbose information
+    #[arg(short, long, default_value_t = false)]
+    verbose: bool,
 }
 
 impl Cli {
@@ -40,5 +44,9 @@ impl Cli {
 
     pub fn debug(&self) -> bool {
         self.debug
+    }
+
+    pub fn verbose(&self) -> bool {
+        self.verbose
     }
 }
