@@ -23,15 +23,6 @@ impl Cli {
     pub fn initialize_and_parse() -> Self {
         let cli = Cli::parse();
 
-        // if cli.duplicates > cli.slots {
-        //     Cli::command()
-        //         .error(
-        //             clap::error::ErrorKind::ValueValidation,
-        //             format!("Duplicates value must be between 0 and {}", cli.slots),
-        //         )
-        //         .exit();
-        // }
-
         cli
     }
 
