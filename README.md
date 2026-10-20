@@ -1,5 +1,11 @@
 # Rustmind
 
+<p align="center">
+  <picture>
+    <img alt="Rustmind CLI" src="assets/demo.gif">
+  </picture>
+</p>
+
 ## A 🄯LI game inspired by the Mastermind® game
 
 The CLI is fully parameterizable, and comes with default values derived from the Mastermind® game:
