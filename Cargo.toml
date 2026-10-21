@@ -2,6 +2,8 @@
 name = "rustmind"
 version = "0.1.0"
 edition = "2024"
+description = "A CLI game inspired by the Mastermind® game"
+license = "GPL-3.0"
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }
