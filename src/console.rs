@@ -105,8 +105,23 @@ impl Console {
             SetAttribute(Attribute::NormalIntensity),
             Print("      : "),
             Print(game.total_colors()),
-            Print("\n")
+            Print(" ("),
         )?;
+        for color in 0..game.total_colors() {
+            let c = char::from_digit(color as u32, 16)
+                .unwrap()
+                .to_ascii_uppercase();
+            queue!(
+                stdout,
+                SetAttribute(Attribute::Bold),
+                SetForegroundColor(Self::color_for(c)),
+                Print(c),
+                ResetColor,
+                SetAttribute(Attribute::NormalIntensity),
+            )?;
+        }
+        queue!(stdout, Print(")"))?;
+        queue!(stdout, Print("\n"))?;
 
         queue!(
             stdout,
