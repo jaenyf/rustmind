@@ -155,7 +155,9 @@ impl Console {
         )?;
 
         for f in game.colors_combination().iter() {
-            let c = char::from_digit(*f as u32, 16).unwrap();
+            let c = char::from_digit(*f as u32, 16)
+                .unwrap()
+                .to_ascii_uppercase();
 
             queue!(
                 stdout,
@@ -214,11 +216,12 @@ impl Console {
                         app.interrupt();
                         continue;
                     }
-                    KeyCode::Char(c)
+                    KeyCode::Char(mut c)
                         if c.is_ascii_hexdigit()
                             && ((c.to_digit(16).unwrap_or(u32::MAX) as usize)
                                 < game.total_colors()) =>
                     {
+                        c = c.to_ascii_uppercase();
                         buffer.push(c);
                         queue!(
                             io::stdout(),
