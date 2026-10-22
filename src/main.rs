@@ -116,6 +116,11 @@ fn main() -> io::Result<()> {
 
         Console::read_combination(&app, &mut game, &mut input)?;
         let combination_result = game.check_combination(&input);
+
+        if app.is_interrupted() {
+            break;
+        }
+
         Console::print_combination_result(&combination_result)?;
 
         if combination_result.is_game_won() {
@@ -127,6 +132,10 @@ fn main() -> io::Result<()> {
         }
         input.clear();
         input.resize(game.total_slots() as usize, 0);
+    }
+
+    if app.is_interrupted() {
+        Console::print_game_quit()?;
     }
 
     if !app.is_interrupted() {

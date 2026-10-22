@@ -296,6 +296,17 @@ impl Console {
         Ok(())
     }
 
+    pub fn print_game_quit() -> io::Result<()> {
+        let mut stdout = io::stdout();
+        queue!(
+            stdout,
+            SetAttribute(Attribute::Bold),
+            Print("You quit!\n"),
+            SetAttribute(Attribute::NormalIntensity),
+        )?;
+        Ok(())
+    }
+
     pub fn print_game_won() -> io::Result<()> {
         let mut stdout = io::stdout();
         queue!(
