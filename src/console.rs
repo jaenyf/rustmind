@@ -11,6 +11,35 @@ use crate::{app::App, game::Game};
 
 use crate::combination_check_result::CombinationCheckResult;
 
+struct RawModeGuard {
+    active: bool,
+}
+
+impl RawModeGuard {
+    fn new() -> Self {
+        Self { active: false }
+    }
+    fn activate(&mut self) -> io::Result<()> {
+        if !self.active {
+            enable_raw_mode()?;
+            self.active = true;
+        }
+        Ok(())
+    }
+    fn deactivate(&mut self) -> io::Result<()> {
+        if self.active {
+            disable_raw_mode()?;
+            self.active = false;
+        }
+        Ok(())
+    }
+}
+
+impl Drop for RawModeGuard {
+    fn drop(&mut self) {
+        let _ = self.deactivate();
+    }
+}
 pub struct Console {}
 
 impl Console {
@@ -172,7 +201,8 @@ impl Console {
 
         //slots read
         io::stdout().flush()?;
-        enable_raw_mode()?;
+        let mut raw_mode = RawModeGuard::new();
+        raw_mode.activate()?;
         while !app.is_interrupted() && buffer.len() < game.total_slots() {
             if let Event::Key(key) = event::read()? {
                 if key.kind != KeyEventKind::Press {
@@ -210,7 +240,7 @@ impl Console {
             }
         }
         queue!(io::stdout(), Print("\r\n"))?;
-        disable_raw_mode()?;
+        raw_mode.deactivate()?;
         //end slots read
 
         let color_numbers: Vec<usize> = buffer
