@@ -253,6 +253,10 @@ impl Console {
                         print!("\x08 \x08");
                         io::stdout().flush()?;
                     }
+                    KeyCode::Esc => {
+                        app.interrupt();
+                        continue;
+                    }
                     _ => {} // Ignore invalid keys
                 }
             }
