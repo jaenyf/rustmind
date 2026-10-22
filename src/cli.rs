@@ -11,7 +11,7 @@ pub struct Cli {
     pub(crate) slots: u8,
 
     /// Number of allowed tries
-    #[arg(short, long, default_value_t = 12)]
+    #[arg(short, long, default_value_t = 12, value_parser = clap::value_parser!(u8).range(1..))]
     pub(crate) tries: u8,
 
     /// Prevent duplicates
