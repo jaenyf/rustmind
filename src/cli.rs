@@ -7,7 +7,7 @@ pub struct Cli {
     pub(crate) colors: u8,
 
     /// Number of slots to find
-    #[arg(short, long, default_value_t = 4)]
+    #[arg(short, long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=16))]
     pub(crate) slots: u8,
 
     /// Number of allowed tries
