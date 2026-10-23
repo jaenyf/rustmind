@@ -91,24 +91,28 @@ impl Game {
         allow_duplicates: bool,
         total_slots: usize,
         total_colors: usize,
-    ) -> Vec<usize> {
+    ) -> Result<Vec<usize>, String> {
         let mut rng = rand::rng();
 
         if !allow_duplicates {
-            assert!(
-                total_slots <= total_colors,
-                "{}",
-                Messages::combination_generation_slots_exceed_colors_without_duplicates()
-            );
+            if total_slots > total_colors {
+                return Err(
+                    Messages::combination_generation_slots_exceed_colors_without_duplicates(),
+                );
+            }
 
             let mut colors: Vec<usize> = (0..total_colors).collect();
             colors.shuffle(&mut rng);
             colors.truncate(total_slots);
-            colors
+            Ok(colors)
         } else {
-            (0..total_slots)
+            if total_colors <= 0 {
+                return Err(Messages::no_allowed_colors());
+            }
+
+            Ok((0..total_slots)
                 .map(|_| rng.random_range(0..total_colors))
-                .collect()
+                .collect())
         }
     }
 
@@ -267,6 +271,40 @@ mod tests {
     fn test_new_panics_if_tries_is_equal_to_zero() {
         // act / assert
         Game::new_parameterized(false, 4, 6, 0, vec![1, 1, 1, 4].to_vec());
+    }
+
+    #[rstest]
+    #[case(1)]
+    #[case(2)]
+    #[case(10)]
+    fn test_generate_random_colors_combination_fails_when_no_colors_and_duplicates(
+        #[case] total_slots: usize,
+    ) {
+        // act
+        let result = Game::generate_random_colors_combination(true, total_slots, 0);
+
+        // assert
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap(), "There are no allowed colors");
+    }
+
+    #[rstest]
+    #[case(1, 0)]
+    #[case(2, 1)]
+    #[case(20, 10)]
+    fn test_generate_random_colors_combination_fails_when_less_colors_than_slots_and_no_duplicates(
+        #[case] total_slots: usize,
+        #[case] total_colors: usize,
+    ) {
+        // act
+        let result = Game::generate_random_colors_combination(false, total_slots, total_colors);
+
+        // assert
+        assert!(result.is_err());
+        assert_eq!(
+            result.err().unwrap(),
+            "Cannot generate a combination without duplicates when slots exceed colors"
+        );
     }
 
     #[rstest]

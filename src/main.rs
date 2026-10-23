@@ -41,11 +41,18 @@ fn main() -> io::Result<()> {
     let combination_answer: Vec<usize>;
     let forced_combination_answer = cli.combination_answer;
     if forced_combination_answer.is_none() {
-        combination_answer = Game::generate_random_colors_combination(
+        let combination_answer_result = Game::generate_random_colors_combination(
             cli.allow_duplicates,
             cli.slots as usize,
             cli.colors as usize,
         );
+
+        if combination_answer_result.is_err() {
+            Console::print_error(combination_answer_result.err().unwrap())?;
+            std::process::exit(ExitCodes::general_error());
+        }
+
+        combination_answer = combination_answer_result.ok().unwrap();
     } else {
         let combination_answer_chars: Vec<char> =
             forced_combination_answer.unwrap().chars().collect();

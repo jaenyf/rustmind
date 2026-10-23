@@ -36,4 +36,8 @@ impl Messages {
     pub fn combination_answer_slots_number_does_not_match_declared_one() -> String {
         "Combination answer slots number does not match declared one".to_string()
     }
+
+    pub fn no_allowed_colors() -> String {
+        "There are no allowed colors".to_string()
+    }
 }
