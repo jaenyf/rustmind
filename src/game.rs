@@ -51,6 +51,11 @@ impl Game {
             panic!("{}", Messages::slots_should_be_greater_than_zero());
         }
 
+        // Ensure tries number is greater than 0
+        if max_tries <= 0 {
+            panic!("{}", Messages::tries_should_be_greater_than_zero());
+        }
+
         // Ensure slots length greater than colors length forces use of duplicates
         if (total_slots > total_colors) && !allow_duplicates {
             panic!("{}", Messages::slots_exceed_colors_without_duplicates());
@@ -254,6 +259,13 @@ mod tests {
     ) {
         // act / assert
         Game::new_parameterized(true, total_slots, total_colors, 1, combination.to_vec());
+    }
+
+    #[rstest]
+    #[should_panic(expected = "Combination tries number should be greater than 0")]
+    fn test_new_panics_if_tries_is_equal_to_zero() {
+        // act / assert
+        Game::new_parameterized(false, 4, 6, 0, vec![1, 1, 1, 4].to_vec());
     }
 
     #[rstest]

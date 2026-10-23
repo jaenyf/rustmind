@@ -13,6 +13,10 @@ impl Messages {
         "Combination slots number should be greater than 0".to_string()
     }
 
+    pub fn tries_should_be_greater_than_zero() -> String {
+        "Combination tries number should be greater than 0".to_string()
+    }
+
     pub fn forced_combination_length_exceeded_() -> String {
         "Forced combination combination length exceeds the maximum length".to_string()
     }
