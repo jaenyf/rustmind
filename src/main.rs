@@ -129,19 +129,25 @@ fn main() -> io::Result<()> {
         }
 
         Console::read_combination(&app, &mut game, &mut input)?;
-        let combination_result = game.check_combination(&input);
+        let combination_check_result = game.check_combination(&input);
+
+        if combination_check_result.is_err() {
+            panic!("{}", combination_check_result.err().unwrap());
+        }
+
+        let combination_check = combination_check_result.ok().unwrap();
 
         if app.is_interrupted() {
             break;
         }
 
-        Console::print_combination_result(&combination_result)?;
+        Console::print_combination_result(&combination_check)?;
 
-        if combination_result.is_game_won() {
+        if combination_check.is_game_won() {
             is_game_won = true;
             break;
         }
-        if combination_result.is_game_lost() {
+        if combination_check.is_game_lost() {
             is_game_lost = true;
         }
         input.clear();

@@ -123,8 +123,15 @@ fn test_check_combination_handles_undersized_guess(
     // arrange
     let game = Game::new_parameterized(false, 4, 6, 1, combination.to_vec());
 
-    // act / assert
-    game.check_combination(&combination_try);
+    // act
+    let result = game.check_combination(&combination_try);
+
+    // assert
+    assert!(result.is_err());
+    assert_eq!(
+        result.err().unwrap(),
+        Messages::combination_answer_slots_number_does_not_match_declared_one()
+    );
 }
 
 #[rstest]
@@ -137,8 +144,15 @@ fn test_check_combination_handles_oversized_guess(
     // arrange
     let game = Game::new_parameterized(false, 4, 10, 1, combination.to_vec());
 
-    // act / assert
-    game.check_combination(&combination_try);
+    // act
+    let result = game.check_combination(&combination_try);
+
+    // assert
+    assert!(result.is_err());
+    assert_eq!(
+        result.err().unwrap(),
+        Messages::combination_answer_slots_number_does_not_match_declared_one()
+    );
 }
 
 #[rstest]
@@ -166,7 +180,7 @@ fn test_check_combination_handles_well_placed(
     let result = game.check_combination(&combination_try);
 
     // assert
-    assert_eq!(result.well_placed(), expected);
+    assert_eq!(result.unwrap().well_placed(), expected);
 }
 
 #[rstest]
@@ -196,7 +210,7 @@ fn test_check_combination_handles_well_placed_duplicates(
     let result = game.check_combination(&combination_try);
 
     // assert
-    assert_eq!(result.well_placed(), expected);
+    assert_eq!(result.unwrap().well_placed(), expected);
 }
 
 #[rstest]
@@ -224,7 +238,7 @@ fn test_check_combination_handles_misplaced(
     let result = game.check_combination(&combination_try);
 
     // assert
-    assert_eq!(result.misplaced(), expected);
+    assert_eq!(result.unwrap().misplaced(), expected);
 }
 
 #[rstest]
@@ -246,7 +260,7 @@ fn test_check_combination_handles_misplaced_duplicates(
     let result = game.check_combination(&combination_try);
 
     // assert
-    assert_eq!(result.misplaced(), expected);
+    assert_eq!(result.unwrap().misplaced(), expected);
 }
 
 #[rstest]
@@ -273,5 +287,5 @@ fn test_check_combination_handles_misplaced_proposed_duplicates(
     let result = game.check_combination(&combination_try);
 
     // assert
-    assert_eq!(result.misplaced(), expected);
+    assert_eq!(result.unwrap().misplaced(), expected);
 }

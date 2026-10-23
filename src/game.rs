@@ -148,7 +148,14 @@ impl Game {
     }
 
     /// Compute the correct/misplaced slots and check for victory
-    pub fn check_combination(&self, combination: &Vec<usize>) -> CombinationCheckResult {
+    pub fn check_combination(
+        &self,
+        combination: &Vec<usize>,
+    ) -> Result<CombinationCheckResult, String> {
+        if combination.len() != self.total_slots() {
+            return Err(Messages::combination_answer_slots_number_does_not_match_declared_one());
+        }
+
         let mut well_placed: usize = 0;
         let mut misplaced_slots: usize = 0;
         let mut exact_matches = vec![false; self.combination_answer.len()];
@@ -191,6 +198,6 @@ impl Game {
             well_placed,
             misplaced_slots,
         );
-        result
+        Ok(result)
     }
 }
