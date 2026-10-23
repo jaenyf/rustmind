@@ -64,7 +64,7 @@ fn main() -> io::Result<()> {
         let mut max_digit_value: u32 = 0;
         let mut seen_chars: Vec<char> = Vec::new();
         for i in 0..combination_answer_chars.len() {
-            let char = combination_answer_chars[i];
+            let char = combination_answer_chars[i].to_ascii_uppercase();
             if seen_chars.contains(&char) {
                 cli.allow_duplicates = true;
             } else {
