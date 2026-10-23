@@ -10,4 +10,7 @@ impl ExitCodes {
     pub fn general_error() -> i32 {
         2
     }
+    pub fn user_interruption() -> i32 {
+        3
+    }
 }

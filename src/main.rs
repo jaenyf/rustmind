@@ -143,6 +143,7 @@ fn main() -> io::Result<()> {
 
     if app.is_interrupted() {
         Console::print_game_quit()?;
+        std::process::exit(ExitCodes::user_interruption());
     }
 
     if !app.is_interrupted() {
