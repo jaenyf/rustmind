@@ -149,7 +149,7 @@ impl Console {
             Print("Duplicates"),
             SetAttribute(Attribute::NormalIntensity),
             Print("  : "),
-            Print(!game.prevent_duplicates()),
+            Print(game.allow_duplicates()),
             Print("\n")
         )?;
 

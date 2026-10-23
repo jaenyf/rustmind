@@ -5,7 +5,7 @@ use crate::{combination_check_result::CombinationCheckResult, messages::Messages
 /// Describe a single game state
 pub struct Game {
     /// Whether or not to prevent duplicates in combination
-    prevent_duplicates: bool,
+    allow_duplicates: bool,
     /// The user current try
     current_try: usize,
     /// The maximum allowed tries
@@ -21,14 +21,14 @@ pub struct Game {
 impl Game {
     /// Create a new game
     pub fn new_parameterized(
-        prevent_duplicates: bool,
+        allow_duplicates: bool,
         total_slots: usize,
         total_colors: usize,
         max_tries: usize,
         colors_combination: Vec<usize>,
     ) -> Self {
         let game = Self {
-            prevent_duplicates: prevent_duplicates,
+            allow_duplicates,
             current_try: 0,
             max_tries: max_tries,
             total_slots: total_slots,
@@ -40,13 +40,13 @@ impl Game {
     }
 
     pub fn generate_random_colors_combination(
-        duplicates_prevented: bool,
+        allow_duplicates: bool,
         total_slots: usize,
         total_colors: usize,
     ) -> Vec<usize> {
         let mut rng = rand::rng();
 
-        if duplicates_prevented {
+        if !allow_duplicates {
             assert!(
                 total_slots <= total_colors,
                 "{}",
@@ -64,8 +64,8 @@ impl Game {
         }
     }
 
-    pub fn prevent_duplicates(&self) -> bool {
-        self.prevent_duplicates
+    pub fn allow_duplicates(&self) -> bool {
+        self.allow_duplicates
     }
 
     pub fn current_try(&self) -> usize {

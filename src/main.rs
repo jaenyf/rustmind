@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
     let app = App::new(cli.verbose, cli.debug);
 
     // Check for configuration errors :
-    if (cli.slots > cli.colors) && cli.prevent_duplicates {
+    if (cli.slots > cli.colors) && !cli.allow_duplicates {
         Console::print_error(Messages::slots_exceed_colors_without_duplicates())?;
         std::process::exit(ExitCodes::general_error());
     }
@@ -40,7 +40,7 @@ fn main() -> io::Result<()> {
     let forced_combination_answer = cli.combination_answer;
     if forced_combination_answer.is_none() {
         combination_answer = Game::generate_random_colors_combination(
-            cli.prevent_duplicates,
+            cli.allow_duplicates,
             cli.slots as usize,
             cli.colors as usize,
         );
@@ -59,7 +59,7 @@ fn main() -> io::Result<()> {
         for i in 0..combination_answer_chars.len() {
             let char = combination_answer_chars[i];
             if seen_chars.contains(&char) {
-                cli.prevent_duplicates = false;
+                cli.allow_duplicates = true;
             } else {
                 seen_chars.push(char);
             }
@@ -84,7 +84,7 @@ fn main() -> io::Result<()> {
     }
 
     let mut game = Game::new_parameterized(
-        cli.prevent_duplicates,
+        cli.allow_duplicates,
         cli.slots as usize,
         cli.colors as usize,
         cli.tries as usize,

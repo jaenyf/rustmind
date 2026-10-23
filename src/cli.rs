@@ -14,9 +14,9 @@ pub struct Cli {
     #[arg(short, long, default_value_t = 12, value_parser = clap::value_parser!(u8).range(1..))]
     pub(crate) tries: u8,
 
-    /// Prevent duplicates
-    #[arg(short, long, default_value_t = true)]
-    pub(crate) prevent_duplicates: bool,
+    /// Allow colors duplicates
+    #[arg(short('u'), long("allow-duplicates"), default_value_t = false)]
+    pub(crate) allow_duplicates: bool,
 
     /// Display diagnostic information
     #[arg(short, long, default_value_t = false)]
