@@ -31,16 +31,17 @@ fn main() -> io::Result<()> {
     let app = App::new(cli.verbose, cli.debug);
 
     // Check for configuration errors :
-    if (cli.slots > cli.colors) && !cli.allow_duplicates {
-        Console::print_error(
-            Messages::combination_generation_slots_exceed_colors_without_duplicates(),
-        )?;
-        std::process::exit(ExitCodes::general_error());
-    }
 
     let combination_answer: Vec<usize>;
     let forced_combination_answer = cli.combination_answer;
     if forced_combination_answer.is_none() {
+        if (cli.slots > cli.colors) && !cli.allow_duplicates {
+            Console::print_error(
+                Messages::combination_generation_slots_exceed_colors_without_duplicates(),
+            )?;
+            std::process::exit(ExitCodes::general_error());
+        }
+
         let combination_answer_result = Game::generate_random_colors_combination(
             cli.allow_duplicates,
             cli.slots as usize,
@@ -68,6 +69,7 @@ fn main() -> io::Result<()> {
             std::process::exit(ExitCodes::general_error());
         }
 
+        cli.allow_duplicates = false;
         let mut max_digit_value: u32 = 0;
         let mut seen_chars: Vec<char> = Vec::new();
         for i in 0..combination_answer_chars.len() {
