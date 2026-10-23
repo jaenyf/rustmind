@@ -24,4 +24,8 @@ impl Messages {
     pub fn combination_answer_contains_values_higher_than_permitted() -> String {
         "Combination answer contains values higher than permitted".to_string()
     }
+
+    pub fn combination_answer_slots_number_does_not_match_declared_one() -> String {
+        "Combination answer slots number does not match declared one".to_string()
+    }
 }
