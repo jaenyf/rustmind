@@ -131,6 +131,11 @@ fn main() -> io::Result<()> {
         }
 
         Console::read_combination(&app, &mut game, &mut input)?;
+
+        if app.is_interrupted() {
+            break;
+        }
+
         let combination_check_result = game.check_combination(&input);
 
         if combination_check_result.is_err() {
@@ -138,10 +143,6 @@ fn main() -> io::Result<()> {
         }
 
         let combination_check = combination_check_result.ok().unwrap();
-
-        if app.is_interrupted() {
-            break;
-        }
 
         Console::print_combination_result(&combination_check)?;
 
