@@ -76,7 +76,7 @@ impl Game {
                 seen_colors.push(color);
             }
 
-            if color > total_colors {
+            if color >= total_colors {
                 panic!(
                     "{}",
                     Messages::combination_answer_contains_values_higher_than_permitted()
@@ -246,6 +246,7 @@ mod tests {
     }
 
     #[rstest]
+    #[case(vec![0,1],2,1)]
     #[case(vec![1,2],2,1)]
     #[case(vec![1,1,3],3,2)]
     #[case(vec![1,1,3,4],4,3)]
@@ -278,7 +279,7 @@ mod tests {
         #[case] combination_try: Vec<usize>,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 6, 1, combination.to_vec());
 
         // act / assert
         game.check_combination(&combination_try);
@@ -292,7 +293,7 @@ mod tests {
         #[case] combination_try: Vec<usize>,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(false, 4, 10, 1, combination.to_vec());
 
         // act / assert
         game.check_combination(&combination_try);
@@ -317,7 +318,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 6, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -375,7 +376,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 6, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -424,7 +425,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 6, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
