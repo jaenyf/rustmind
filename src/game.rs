@@ -101,7 +101,8 @@ impl Game {
         if combination.len() > 0 {
             // Search for exact matches
             for i in 0..combination.len() {
-                if combination[i] == self.answer_combination[i] {
+                if i < self.answer_combination.len() && combination[i] == self.answer_combination[i]
+                {
                     well_placed += 1;
                     exact_matches[i] = true;
                     misplaced_matches[i] = true;
@@ -115,7 +116,10 @@ impl Game {
                 }
 
                 for j in 0..self.answer_combination.len() {
-                    if !exact_matches[j] && combination[i] == self.answer_combination[j] {
+                    if !exact_matches[j]
+                        && i < self.answer_combination.len()
+                        && combination[i] == self.answer_combination[j]
+                    {
                         misplaced_slots += 1;
                         exact_matches[j] = true;
                         misplaced_matches[i] = true;
@@ -141,6 +145,36 @@ mod tests {
 
     use super::*;
     use rstest::rstest;
+
+    #[rstest]
+    #[case([1,2,3,4], vec![3,2,1])]
+    #[case([1,2,3,4], vec![2,1])]
+    #[case([1,2,3,4], vec![1])]
+    #[case([1,2,3,4], vec![])]
+    fn test_check_combination_handles_undersized_guess(
+        #[case] combination: [usize; 4],
+        #[case] combination_try: Vec<usize>,
+    ) {
+        // arrange
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+
+        // act / assert
+        game.check_combination(&combination_try);
+    }
+
+    #[rstest]
+    #[case([1,2,3,4], vec![5,4,3,2,1])]
+    #[case([1,2,3,4], vec![9,8,7,6,5,4,3,2,1])]
+    fn test_check_combination_handles_oversized_guess(
+        #[case] combination: [usize; 4],
+        #[case] combination_try: Vec<usize>,
+    ) {
+        // arrange
+        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+
+        // act / assert
+        game.check_combination(&combination_try);
+    }
 
     #[rstest]
     #[case([1,2,3,4], vec![1,0,0,0], 1)]
