@@ -38,16 +38,22 @@ impl Game {
 
         // Check for configuration errors :
 
-        // Ensure slots length greater than colors length forces use of duplicates
-        if (total_slots > total_colors) && !allow_duplicates {
-            panic!("{}", Messages::slots_exceed_colors_without_duplicates());
-        }
-
+        // Ensure the answer length and slots number does match
         if combination_answer.len() != total_slots {
             panic!(
                 "{}",
                 Messages::combination_answer_slots_number_does_not_match_declared_one()
             );
+        }
+
+        // Ensure slots number is greater than 0
+        if total_slots <= 0 {
+            panic!("{}", Messages::slots_should_be_greater_than_zero());
+        }
+
+        // Ensure slots length greater than colors length forces use of duplicates
+        if (total_slots > total_colors) && !allow_duplicates {
+            panic!("{}", Messages::slots_exceed_colors_without_duplicates());
         }
 
         // Ensure validty of the given answer :
@@ -196,7 +202,7 @@ mod tests {
     #[case(vec![1,1,3,4],3)]
     #[case(vec![1,1,1,4,5],4)]
     #[should_panic(expected = "Combination answer slots number does not match declared one")]
-    fn test_new_panics_if_answer_length_is_lesser_than_slots_length(
+    fn test_new_panics_if_answer_length_dot_not_match_slots_length(
         #[case] combination: Vec<usize>,
         #[case] total_slots: usize,
     ) {

@@ -32,7 +32,9 @@ fn main() -> io::Result<()> {
 
     // Check for configuration errors :
     if (cli.slots > cli.colors) && !cli.allow_duplicates {
-        Console::print_error(Messages::combination_generation_slots_exceed_colors_without_duplicates())?;
+        Console::print_error(
+            Messages::combination_generation_slots_exceed_colors_without_duplicates(),
+        )?;
         std::process::exit(ExitCodes::general_error());
     }
 
@@ -53,6 +55,11 @@ fn main() -> io::Result<()> {
             std::process::exit(ExitCodes::general_error());
         }
         cli.slots = combination_answer_chars.len() as u8;
+
+        if cli.slots <= 0 {
+            Console::print_error(Messages::slots_should_be_greater_than_zero())?;
+            std::process::exit(ExitCodes::general_error());
+        }
 
         let mut max_digit_value: u32 = 0;
         let mut seen_chars: Vec<char> = Vec::new();

@@ -9,6 +9,10 @@ impl Messages {
         "Combination slots exceed colors while duplicated are prevented".to_string()
     }
 
+    pub fn slots_should_be_greater_than_zero() -> String {
+        "Combination slots number should be greater than 0".to_string()
+    }
+
     pub fn forced_combination_length_exceeded_() -> String {
         "Forced combination combination length exceeds the maximum length".to_string()
     }
