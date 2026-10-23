@@ -32,7 +32,7 @@ fn main() -> io::Result<()> {
 
     // Check for configuration errors :
     if (cli.slots > cli.colors) && !cli.allow_duplicates {
-        Console::print_error(Messages::slots_exceed_colors_without_duplicates())?;
+        Console::print_error(Messages::combination_generation_slots_exceed_colors_without_duplicates())?;
         std::process::exit(ExitCodes::general_error());
     }
 

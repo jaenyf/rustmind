@@ -15,7 +15,7 @@ pub struct Game {
     /// The number of available colors
     total_colors: usize,
     /// The correct colors combination
-    answer_combination: Vec<usize>,
+    combination_answer: Vec<usize>,
 }
 
 impl Game {
@@ -25,7 +25,7 @@ impl Game {
         total_slots: usize,
         total_colors: usize,
         max_tries: usize,
-        colors_combination: Vec<usize>,
+        combination_answer: Vec<usize>,
     ) -> Self {
         let game = Self {
             allow_duplicates,
@@ -33,8 +33,38 @@ impl Game {
             max_tries: max_tries,
             total_slots: total_slots,
             total_colors: total_colors,
-            answer_combination: colors_combination,
+            combination_answer: combination_answer.clone(),
         };
+
+        // Check for configuration errors :
+
+        // Ensure slots length greater than colors length forces use of duplicates
+        if (total_slots > total_colors) && !allow_duplicates {
+            panic!("{}", Messages::slots_exceed_colors_without_duplicates());
+        }
+
+        // Ensure validty of the given answer :
+        let mut seen_colors: Vec<usize> = Vec::new();
+        for i in 0..combination_answer.len() {
+            let color = combination_answer[i];
+            if seen_colors.contains(&color) {
+                if !allow_duplicates {
+                    panic!(
+                        "{}",
+                        Messages::combination_answer_contains_duplicates_while_prevented()
+                    )
+                }
+            } else {
+                seen_colors.push(color);
+            }
+
+            if color > total_colors {
+                panic!(
+                    "{}",
+                    Messages::combination_answer_contains_values_higher_than_permitted()
+                )
+            }
+        }
 
         game
     }
@@ -50,7 +80,7 @@ impl Game {
             assert!(
                 total_slots <= total_colors,
                 "{}",
-                Messages::slots_exceed_colors_without_duplicates()
+                Messages::combination_generation_slots_exceed_colors_without_duplicates()
             );
 
             let mut colors: Vec<usize> = (0..total_colors).collect();
@@ -85,7 +115,7 @@ impl Game {
     }
 
     pub fn colors_combination(&self) -> Vec<usize> {
-        self.answer_combination.clone()
+        self.combination_answer.clone()
     }
 
     pub fn inc_current_try(&mut self) {
@@ -96,12 +126,12 @@ impl Game {
     pub fn check_combination(&self, combination: &Vec<usize>) -> CombinationCheckResult {
         let mut well_placed: usize = 0;
         let mut misplaced_slots: usize = 0;
-        let mut exact_matches = vec![false; self.answer_combination.len()];
+        let mut exact_matches = vec![false; self.combination_answer.len()];
         let mut misplaced_matches = vec![false; combination.len()];
         if combination.len() > 0 {
             // Search for exact matches
             for i in 0..combination.len() {
-                if i < self.answer_combination.len() && combination[i] == self.answer_combination[i]
+                if i < self.combination_answer.len() && combination[i] == self.combination_answer[i]
                 {
                     well_placed += 1;
                     exact_matches[i] = true;
@@ -115,10 +145,10 @@ impl Game {
                     continue;
                 }
 
-                for j in 0..self.answer_combination.len() {
+                for j in 0..self.combination_answer.len() {
                     if !exact_matches[j]
-                        && i < self.answer_combination.len()
-                        && combination[i] == self.answer_combination[j]
+                        && i < self.combination_answer.len()
+                        && combination[i] == self.combination_answer[j]
                     {
                         misplaced_slots += 1;
                         exact_matches[j] = true;
@@ -145,6 +175,48 @@ mod tests {
 
     use super::*;
     use rstest::rstest;
+
+    #[rstest]
+    #[case(vec![1,1],2,1)]
+    #[case(vec![1,1,3],3,2)]
+    #[case(vec![1,1,3,4],4,2)]
+    #[case(vec![1,1,1,4],4,3)]
+    #[should_panic(expected = "Combination slots exceed colors while duplicated are prevented")]
+    fn test_new_panics_if_slots_exceed_colors_while_preventing_duplicated(
+        #[case] combination: Vec<usize>,
+        #[case] total_slots: usize,
+        #[case] total_colors: usize,
+    ) {
+        // act / assert
+        Game::new_parameterized(false, total_slots, total_colors, 1, combination.to_vec());
+    }
+
+    #[rstest]
+    #[case(vec![1,1])]
+    #[case(vec![1,1,3])]
+    #[case(vec![1,1,3,4])]
+    #[case(vec![1,1,1,4])]
+    #[case(vec![1,1,1,1])]
+    #[should_panic(expected = "Combination answer contains duplicates while prevented")]
+    fn test_new_panics_if_duplicated_while_prevented(#[case] combination: Vec<usize>) {
+        // act / assert
+        Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+    }
+
+    #[rstest]
+    #[case(vec![1,2],1)]
+    #[case(vec![1,1,3],2)]
+    #[case(vec![1,1,3,4],3)]
+    #[case(vec![1,1,1,5],4)]
+    #[case(vec![1,1,1,1],0)]
+    #[should_panic(expected = "Combination answer contains values higher than permitted")]
+    fn test_new_panics_if_combination_contains_higher_values_than_permitted(
+        #[case] combination: Vec<usize>,
+        #[case] total_colors: usize,
+    ) {
+        // act / assert
+        Game::new_parameterized(true, 4, total_colors, 1, combination.to_vec());
+    }
 
     #[rstest]
     #[case([1,2,3,4], vec![3,2,1])]
@@ -195,7 +267,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -225,7 +297,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -253,7 +325,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -275,7 +347,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
@@ -302,7 +374,7 @@ mod tests {
         #[case] expected: usize,
     ) {
         // arrange
-        let game = Game::new_parameterized(false, 4, 4, 1, combination.to_vec());
+        let game = Game::new_parameterized(true, 4, 4, 1, combination.to_vec());
 
         // act
         let result = game.check_combination(&combination_try);
