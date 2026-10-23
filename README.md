@@ -22,12 +22,12 @@ Options:
   **-c, --colors** \<COLORS\>              Number of allowed colors [default: 6]  
   **-s, --slots** \<SLOTS\>                Number of slots to find [default: 4]  
   **-t, --tries** \<TRIES\>                Number of allowed tries [default: 12]  
-  **-p, --prevent-duplicates**           Prevent duplicates  
-  **-d, --debug**                        Display diagnostic information  
-  **-v, --verbose**                      Display verbose information  
+  **-u, --allow-duplicates**               Allow colors duplicates  
+  **-d, --debug**                          Display diagnostic information  
+  **-v, --verbose**                        Display verbose information  
   **-a, --answer** \<COMBINATION_ANSWER\>  Force the combination answer to the given value ([0-9a-fA-F]) - When this option is set, it overrides any other set options with values derived from the given combination  
-  **-h, --help**                         Print help  
-  **-V, --version**                      Print version  
+  **-h, --help**                           Print help  
+  **-V, --version**                        Print version  
 
 ## License
 
