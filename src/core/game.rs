@@ -2,7 +2,7 @@
 #[path = "game.test.rs"]
 mod tests;
 
-use crate::{combination_check_result::CombinationCheckResult, messages::Messages};
+use crate::core::{CombinationCheckResult, Messages};
 use rand::{RngExt, seq::SliceRandom};
 
 /// Describe a single game state

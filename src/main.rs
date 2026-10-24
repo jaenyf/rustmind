@@ -1,20 +1,10 @@
-mod app;
-mod cli;
-mod combination_check_result;
-mod console;
-mod exit_codes;
-mod game;
-mod messages;
-
 use std::io;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use crate::app::App;
-use crate::cli::Cli;
-use crate::console::Console;
-use crate::exit_codes::ExitCodes;
-use crate::game::Game;
-use crate::messages::Messages;
+mod app;
+
+use crate::app::{App, Cli, Console, ExitCodes};
+use rustmind::core::{Game, Messages};
 
 fn main() -> io::Result<()> {
     static INTERRUPTED: AtomicBool = AtomicBool::new(false);

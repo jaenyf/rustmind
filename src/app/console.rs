@@ -7,9 +7,9 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode},
 };
 
-use crate::{app::App, game::Game};
+use crate::app::App;
 
-use crate::combination_check_result::CombinationCheckResult;
+use rustmind::core::{CombinationCheckResult, Game};
 
 struct RawModeGuard {
     active: bool,
