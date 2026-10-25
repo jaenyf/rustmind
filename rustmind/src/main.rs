@@ -15,6 +15,10 @@ use rustmind_core::{Game, Messages};
 
 fn main() -> io::Result<()> {
     static INTERRUPTED: AtomicBool = AtomicBool::new(false);
+    const ERROR_MESSAGE_FORCED_COMBINATION_LENGTH_EXCEEDS_MAX_LENGTH: &str =
+        "Forced combination combination length exceeds the maximum length";
+    const ERROR_MESSAGE_FORCED_COMBINATION_CONTAINS_NON_HEXADECIMAL_CHARACTERS: &str =
+        "Forced combination answer contains non hexadecimal characters";
 
     ctrlc::set_handler(|| {
         INTERRUPTED.store(true, Ordering::SeqCst);
@@ -56,7 +60,9 @@ fn main() -> io::Result<()> {
             forced_combination_answer.unwrap().chars().collect();
 
         if combination_answer_chars.len() > 255 {
-            Console::print_error(Messages::forced_combination_length_exceeded_())?;
+            Console::print_error(
+                ERROR_MESSAGE_FORCED_COMBINATION_LENGTH_EXCEEDS_MAX_LENGTH.to_string(),
+            )?;
             std::process::exit(ExitCodes::general_error());
         }
         cli.slots = combination_answer_chars.len() as u8;
@@ -79,7 +85,8 @@ fn main() -> io::Result<()> {
             let digit = char.to_digit(16);
             if digit.is_none() {
                 Console::print_error(
-                    Messages::forced_combination_contains_non_hexadecimal_characters(),
+                    ERROR_MESSAGE_FORCED_COMBINATION_CONTAINS_NON_HEXADECIMAL_CHARACTERS
+                        .to_string(),
                 )?;
                 std::process::exit(ExitCodes::general_error());
             }

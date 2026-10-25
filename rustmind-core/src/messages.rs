@@ -17,14 +17,6 @@ impl Messages {
         "Combination tries number should be greater than 0".to_string()
     }
 
-    pub fn forced_combination_length_exceeded_() -> String {
-        "Forced combination combination length exceeds the maximum length".to_string()
-    }
-
-    pub fn forced_combination_contains_non_hexadecimal_characters() -> String {
-        "Forced combination answer contains non hexadecimal characters".to_string()
-    }
-
     pub fn combination_answer_contains_duplicates_while_prevented() -> String {
         "Combination answer contains duplicates while prevented".to_string()
     }
