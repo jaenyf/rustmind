@@ -65,12 +65,13 @@ fn main() -> io::Result<()> {
             )?;
             std::process::exit(ExitCodes::general_error());
         }
-        cli.slots = combination_answer_chars.len() as u8;
 
-        if cli.slots <= 0 {
+        if combination_answer_chars.is_empty() {
             Console::print_error(Messages::slots_should_be_greater_than_zero())?;
             std::process::exit(ExitCodes::general_error());
         }
+
+        cli.slots = combination_answer_chars.len() as u8;
 
         cli.allow_duplicates = false;
         let mut max_digit_value: u32 = 0;
