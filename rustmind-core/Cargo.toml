@@ -1,0 +1,13 @@
+[package]
+name = "rustmind-core"
+version = "0.1.0"
+edition = "2024"
+description = "Core logic library for Rustmind"
+repository = "https://github.com/jaenyf/rustmind"
+license-file = "LICENSE"
+
+[dependencies]
+rand = "0.10.3"
+
+[dev-dependencies]
+rstest = "0.28.0"

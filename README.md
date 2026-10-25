@@ -2,7 +2,7 @@
 
 <p align="center">
   <picture>
-    <img alt="Rustmind CLI" src="assets/demo.gif">
+    <img alt="Rustmind CLI" src="https://raw.githubusercontent.com/jaenyf/rustmind/main/assets/demo.gif">
   </picture>
 </p>
 
@@ -28,6 +28,18 @@ Options:
   **-a, --answer** \<COMBINATION_ANSWER\>  Force the combination answer to the given value ([0-9a-fA-F]) - When this option is set, it overrides any other set options with values derived from the given combination  
   **-h, --help**                           Print help  
   **-V, --version**                        Print version  
+
+## Installation
+
+`cargo install rustmind`
+
+## Development
+
+`cargo run -- -vd`
+
+## Tests
+
+`cargo test`
 
 ## License
 

@@ -595,11 +595,18 @@ dependencies = [
 
 [[package]]
 name = "rustmind"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "clap",
  "crossterm",
  "ctrlc",
+ "rustmind-core",
+]
+
+[[package]]
+name = "rustmind-core"
+version = "0.1.0"
+dependencies = [
  "rand",
  "rstest",
 ]
